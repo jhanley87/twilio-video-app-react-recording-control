@@ -19,7 +19,7 @@ import useVideoContext from '../../../hooks/useVideoContext/useVideoContext';
 import FlipCameraIcon from '../../../icons/FlipCameraIcon';
 import useFlipCameraToggle from '../../../hooks/useFlipCameraToggle/useFlipCameraToggle';
 import { VideoRoomMonitor } from '@twilio/video-room-monitor';
-import useCanControlRecording from '../../../hooks/useCanControlRecording/useCanControlRecording';
+import { useEffect } from 'react';
 
 export const IconContainer = styled('div')({
   display: 'flex',
@@ -34,15 +34,21 @@ export default function Menu(props: { buttonClassName?: string }) {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [canControlRecording, setCanControlRecording] = useState(false);
 
-  const { isFetching, updateRecordingRules, roomType } = useAppState();
+  const { isFetching, updateRecordingRules, roomType, checkUserCanControlRecording } = useAppState();
   const { setIsChatWindowOpen } = useChatContext();
   const isRecording = useIsRecording();
   const { room, setIsBackgroundSelectionOpen } = useVideoContext();
 
   const anchorRef = useRef<HTMLButtonElement>(null);
   const { flipCameraDisabled, toggleFacingMode, flipCameraSupported } = useFlipCameraToggle();
-  const canControlRecording = useCanControlRecording();
+
+  useEffect(() => {
+    checkUserCanControlRecording(room?.localParticipant.identity ?? '').then(res => {
+      setCanControlRecording(res.canControl);
+    });
+  }, []);
 
   return (
     <>

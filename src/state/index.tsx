@@ -22,7 +22,12 @@ export interface StateContextType {
   dispatchSetting: React.Dispatch<SettingsAction>;
   roomType?: RoomType;
   updateRecordingRules(room_sid: string, rules: RecordingRules): Promise<object>;
+  checkUserCanControlRecording(identity: string): Promise<RecordingControlResponse>;
 }
+
+export type RecordingControlResponse = {
+  canControl: boolean;
+};
 
 export const StateContext = createContext<StateContextType>(null!);
 
@@ -90,6 +95,17 @@ export default function AppStateProvider(props: React.PropsWithChildren<{}>) {
           },
           body: JSON.stringify({ room_sid, rules }),
           method: 'POST',
+        }).then(res => res.json());
+      },
+      checkUserCanControlRecording: async identity => {
+        const endpoint = 'https://run.mocky.io/v3/fda73deb-d5da-418b-a761-045c63664ea2';
+
+        return fetch(endpoint, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ identity }),
+          method: 'POST',
         })
           .then(async res => {
             const jsonResponse = await res.json();
@@ -108,6 +124,21 @@ export default function AppStateProvider(props: React.PropsWithChildren<{}>) {
       },
     };
   }
+
+  const checkUserCanControlRecording: StateContextType['checkUserCanControlRecording'] = identity => {
+    setIsFetching(true);
+    return contextValue
+      .checkUserCanControlRecording(identity)
+      .then(res => {
+        setIsFetching(false);
+        return res;
+      })
+      .catch(err => {
+        setError(err);
+        setIsFetching(false);
+        return Promise.reject(err);
+      });
+  };
 
   const getToken: StateContextType['getToken'] = (name, room) => {
     setIsFetching(true);
@@ -141,7 +172,7 @@ export default function AppStateProvider(props: React.PropsWithChildren<{}>) {
   };
 
   return (
-    <StateContext.Provider value={{ ...contextValue, getToken, updateRecordingRules }}>
+    <StateContext.Provider value={{ ...contextValue, getToken, updateRecordingRules, checkUserCanControlRecording }}>
       {props.children}
     </StateContext.Provider>
   );
