@@ -19,6 +19,7 @@ import useVideoContext from '../../../hooks/useVideoContext/useVideoContext';
 import FlipCameraIcon from '../../../icons/FlipCameraIcon';
 import useFlipCameraToggle from '../../../hooks/useFlipCameraToggle/useFlipCameraToggle';
 import { VideoRoomMonitor } from '@twilio/video-room-monitor';
+import useCanControlRecording from '../../../hooks/useCanControlRecording/useCanControlRecording';
 
 export const IconContainer = styled('div')({
   display: 'flex',
@@ -41,6 +42,7 @@ export default function Menu(props: { buttonClassName?: string }) {
 
   const anchorRef = useRef<HTMLButtonElement>(null);
   const { flipCameraDisabled, toggleFacingMode, flipCameraSupported } = useFlipCameraToggle();
+  const canControlRecording = useCanControlRecording();
 
   return (
     <>
@@ -103,7 +105,7 @@ export default function Menu(props: { buttonClassName?: string }) {
           </MenuItem>
         )}
 
-        {roomType !== 'peer-to-peer' && roomType !== 'go' && (
+        {roomType !== 'peer-to-peer' && roomType !== 'go' && canControlRecording && (
           <MenuItem
             disabled={isFetching}
             onClick={() => {
